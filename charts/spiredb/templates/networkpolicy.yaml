@@ -1,0 +1,65 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "spiredb.fullname" . }}-gossip
+  labels:
+    {{- include "spiredb.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "spiredb.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow gossip UDP from same pods
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "spiredb.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: UDP
+      port: 45892
+  # Allow TCP traffic (RESP, gRPC, Erlang distribution)
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "spiredb.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+    - protocol: TCP
+      port: {{ .Values.service.metadataPort }}
+    - protocol: TCP
+      port: {{ .Values.service.distPort }}
+  egress:
+  # Allow gossip UDP to same pods
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "spiredb.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: UDP
+      port: 45892
+  # Allow TCP egress
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "spiredb.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+    - protocol: TCP
+      port: {{ .Values.service.metadataPort }}
+    - protocol: TCP
+      port: {{ .Values.service.distPort }}
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+{{- end }}

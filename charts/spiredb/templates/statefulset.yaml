@@ -1,0 +1,181 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "spiredb.fullname" . }}
+  labels:
+    {{- include "spiredb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "spiredb.headlessServiceName" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spiredb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "spiredb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}``
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spiredb.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: resp
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: metadata
+              containerPort: {{ .Values.service.metadataPort }}
+              protocol: TCP
+            - name: dataaccess
+              containerPort: {{ .Values.service.dataAccessPort }}
+              protocol: TCP
+            - name: epmd
+              containerPort: {{ .Values.service.epmdPort }}
+              protocol: TCP
+            - name: dist
+              containerPort: {{ .Values.service.distPort }}
+              protocol: TCP
+            - name: gossip
+              containerPort: 45892
+              protocol: UDP
+          env:
+            # --- Identity (Must be first for expansion) ---
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            # --- Elixir Release / Node Naming ---
+            - name: RELEASE_DISTRIBUTION
+              value: "name"
+            - name: RELEASE_NODE
+              value: "spiredb@$(POD_IP)"
+            # Pin Erlang distribution port to 9001 for K8s access
+            - name: ELIXIR_ERL_OPTIONS
+              value: "-kernel inet_dist_listen_min {{ .Values.service.distPort }} inet_dist_listen_max {{ .Values.service.distPort }} inet_dist_use_interface {0,0,0,0}"
+
+            # --- SpireDB PD Configuration ---
+            - name: SPIRE_NUM_REGIONS
+              value: {{ .Values.config.pd.numRegions | quote }}
+            - name: SPIRE_PD_START_RAFT
+              value: {{ .Values.config.pd.startRaft | quote }}
+            - name: SPIRE_SEED_NODE
+              value: "auto"
+            - name: SPIRE_PD_DATA_DIR
+              value: {{ .Values.config.pd.dataDir | quote }}
+
+            # --- SpireDB Ra Configuration ---
+            - name: SPIRE_RA_DATA_DIR
+              value: {{ .Values.config.ra.dataDir | quote }}
+
+            # --- SpireDB Store Configuration ---
+            - name: SPIRE_RESP_PORT
+              value: {{ .Values.service.port | quote }}
+            - name: SPIRE_RESP_MAX_CONNECTIONS
+              value: {{ .Values.config.store.resp.maxConnections | quote }}
+            - name: SPIRE_RESP_CONNECTION_TIMEOUT
+              value: {{ .Values.config.store.resp.connectionTimeout | quote }}
+
+            - name: SPIRE_ROCKSDB_PATH
+              value: {{ .Values.config.store.rocksdb.path | quote }}
+            - name: SPIRE_ROCKSDB_MAX_OPEN_FILES
+              value: {{ .Values.config.store.rocksdb.maxOpenFiles | quote }}
+
+            - name: SPIRE_RAFT_DATA_DIR
+              value: {{ .Values.config.store.raft.dataDir | quote }}
+            - name: SPIRE_RAFT_ELECTION_TIMEOUT
+              value: {{ .Values.config.store.raft.electionTimeout | quote }}
+            - name: SPIRE_RAFT_HEARTBEAT_INTERVAL
+              value: {{ .Values.config.store.raft.heartbeatInterval | quote }}
+
+            # --- Logger ---
+            - name: SPIRE_LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: SPIRE_DIAG
+              value: {{ .Values.config.diag | quote }}
+
+            # --- Discovery ---
+            - name: SPIRE_DISCOVERY
+              {{- if eq .Values.discovery.type "static" }}
+              value: "epmd"
+              {{- else }}
+              value: "gossip"
+              {{- end }}
+
+            {{- if ne .Values.discovery.type "static" }}
+            - name: SPIRE_SERVICE_NAME
+              value: {{ include "spiredb.headlessServiceName" . | quote }}
+            - name: SPIRE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- end }}
+
+            {{- if eq .Values.discovery.type "static" }}
+            # Example for static: SPIRE_CLUSTER_NODES must be passed if not k8s
+            # But in K8s, static is rarely used unless for manual peering
+            {{- end }}
+
+          livenessProbe:
+            tcpSocket:
+              port: resp
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: resp
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.config.dataDir }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode | quote }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+  {{- end }}

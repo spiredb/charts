@@ -1,0 +1,13 @@
+{{- if gt (int .Values.replicaCount) 1 }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "spiredb.fullname" . }}
+  labels:
+    {{- include "spiredb.labels" . | nindent 4 }}
+spec:
+  minAvailable: 2  # Maintain quorum (2 out of 3)
+  selector:
+    matchLabels:
+      {{- include "spiredb.selectorLabels" . | nindent 6 }}
+{{- end }}
