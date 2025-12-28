@@ -13,7 +13,7 @@ keywords:
   - paxos
 maintainers:
   - name: spiredb
-    email: support@spiredb.com
+    email: support@spire.zone
 sources:
   - https://github.com/spiredb/spiredb
   - https://github.com/spiredb/charts

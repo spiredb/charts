@@ -10,7 +10,7 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 Once Helm has been set up, add the repo to your local Helm:
 
 ```bash
-helm repo add spiredb https://charts.spiredb.com
+helm repo add spiredb https://charts.spire.zone
 helm repo update
 ```
 
