@@ -1,8 +1,8 @@
 apiVersion: v2
 name: spiredb
-description: A Helm chart for SpireDB, the infrastructure of truth for Enterprise AI.
+description: Helm chart for SpireDB - All-in-one Streaming Distributed OLTP Database
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "latest"
 icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
 keywords:
