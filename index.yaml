@@ -1,0 +1,27 @@
+apiVersion: v1
+entries:
+  spiredb:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-06T17:07:46.647621768Z"
+    description: Helm chart for SpireDB - All-in-one Streaming Distributed OLTP Database
+    digest: ac28ab0aa3f3a7a5dfb124422767490e075068a878c62974f86988fea50a58b1
+    icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
+    keywords:
+    - database
+    - spiredb
+    - ai
+    - vector
+    - paxos
+    maintainers:
+    - email: support@spire.zone
+      name: spiredb
+    name: spiredb
+    sources:
+    - https://github.com/spiredb/spiredb
+    - https://github.com/spiredb/charts
+    type: application
+    urls:
+    - https://github.com/spiredb/charts/releases/download/spiredb-0.1.1/spiredb-0.1.1.tgz
+    version: 0.1.1
+generated: "2026-01-06T17:07:46.647627449Z"
