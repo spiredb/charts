@@ -5,6 +5,17 @@
 - Kubernetes 1.19+
 - Helm 3.2.0+
 
+## Cluster Secret
+
+Create the Erlang cookie secret once per cluster before deploying:
+
+```bash
+kubectl create secret generic spiredb-cluster \
+  --from-literal=erlang-cookie=$(openssl rand -hex 32)
+```
+
+All pods will share this cookie for cluster communication.
+
 ## Installing
 
 ```bash

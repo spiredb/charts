@@ -171,3 +171,17 @@ affinity:
 
 # Init container to wait for DNS or perform setup? (Optional, not currently needed for DNS discovery)
 initContainers: []
+
+# Erlang cluster cookie for distributed Erlang
+# IMPORTANT: Override this in production with a secure value or use extraEnv with secretKeyRef
+erlangCookie: "spiredb-default-cluster-cookie"
+
+# Extra environment variables to inject into containers
+# Example for production secret:
+#   extraEnv:
+#     - name: RELEASE_COOKIE
+#       valueFrom:
+#         secretKeyRef:
+#           name: spiredb-cluster
+#           key: erlang-cookie
+extraEnv: []

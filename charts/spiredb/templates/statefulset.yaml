@@ -133,6 +133,14 @@ spec:
             # But in K8s, static is rarely used unless for manual peering
             {{- end }}
 
+            # --- Erlang Cluster Cookie ---
+            - name: RELEASE_COOKIE
+              value: {{ .Values.erlangCookie | quote }}
+
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
           livenessProbe:
             tcpSocket:
               port: resp
