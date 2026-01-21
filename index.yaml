@@ -1,5 +1,42 @@
 apiVersion: v1
 entries:
+  spire:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-01-21T15:22:38.657558798Z"
+    dependencies:
+    - condition: spiredb.enabled
+      name: spiredb
+      repository: file://../spiredb
+      version: '>=0.1.0'
+    - condition: spiresql.enabled
+      name: spiresql
+      repository: file://../spiresql
+      version: '>=0.1.0'
+    - condition: haproxy.enabled
+      name: haproxy
+      repository: https://haproxytech.github.io/helm-charts
+      version: 1.22.0
+    description: Umbrella chart for complete Spire stack (SpireDB + SpireSQL + HAProxy)
+    digest: 512a02257e6d8cd2a6052edc955f708d6afcc65a4cacb3114f130249a592bdb6
+    home: https://github.com/spiredb/spiredb
+    icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
+    keywords:
+    - database
+    - distributed
+    - sql
+    - oltp
+    - vector
+    maintainers:
+    - email: support@spire.zone
+      name: SpireDB Team
+    name: spire
+    sources:
+    - https://github.com/spiredb/spiredb
+    type: application
+    urls:
+    - https://github.com/spiredb/charts/releases/download/spire-0.1.0/spire-0.1.0.tgz
+    version: 0.1.0
   spiredb:
   - apiVersion: v2
     appVersion: latest
@@ -24,4 +61,31 @@ entries:
     urls:
     - https://github.com/spiredb/charts/releases/download/spiredb-0.1.1/spiredb-0.1.1.tgz
     version: 0.1.1
-generated: "2026-01-06T17:07:46.647627449Z"
+  spiresql:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-01-21T15:22:39.033871854Z"
+    dependencies:
+    - condition: spiredb.enabled
+      name: spiredb
+      repository: file://../spiredb
+      version: '>=0.1.0'
+    description: Helm chart for SpireSQL - Spire Compute Layer
+    digest: cd4f5371b829d372b8467e1baa4b5dd85429ca509f1bf3a7e8674e243e427730
+    home: https://github.com/spiredb/spiredb
+    icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
+    keywords:
+    - database
+    - sql
+    - distributed
+    - query-engine
+    maintainers:
+    - name: SpireDB Team
+    name: spiresql
+    sources:
+    - https://github.com/spiredb/spiredb
+    type: application
+    urls:
+    - https://github.com/spiredb/charts/releases/download/spiresql-0.1.0/spiresql-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-01-21T15:22:39.033877264Z"
