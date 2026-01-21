@@ -90,7 +90,7 @@ persistence:
 # Discovery and Cluster Configuration
 discovery:
   # Method: "gossip" (K8s multicast), "k8sdns", or "static"
-  type: "gossip"
+  type: "k8sdns"
   # For DNS discovery, the service name to query
   service: "spiredb-headless"
 
