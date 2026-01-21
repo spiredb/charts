@@ -32,6 +32,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if eq .Values.discovery.type "k8sdns" }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              export RELEASE_NODE="spiredb@${POD_NAME}.{{ include "spiredb.headlessServiceName" . }}.${POD_NAMESPACE}.svc.cluster.local"
+              export SPIRE_SEED_NODE="spiredb@{{ include "spiredb.fullname" . }}-0.{{ include "spiredb.headlessServiceName" . }}.${POD_NAMESPACE}.svc.cluster.local"
+              exec bin/spiredb start
+          {{- end }}
           ports:
             - name: resp
               containerPort: {{ .Values.service.port }}
@@ -70,11 +79,17 @@ spec:
             - name: RELEASE_DISTRIBUTION
               value: "name"
             {{- if eq .Values.discovery.type "k8sdns" }}
+            # k8sdns: Use DNS-based node naming
             - name: RELEASE_NODE
               value: "spiredb@$(POD_NAME).{{ include "spiredb.headlessServiceName" . }}.$(POD_NAMESPACE).svc.cluster.local"
+            - name: SPIRE_SEED_NODE
+              value: "spiredb@{{ include "spiredb.fullname" . }}-0.{{ include "spiredb.headlessServiceName" . }}.$(POD_NAMESPACE).svc.cluster.local"
             {{- else }}
+            # For non-k8sdns, use POD_IP-based naming
             - name: RELEASE_NODE
               value: "spiredb@$(POD_IP)"
+            - name: SPIRE_SEED_NODE
+              value: "auto"
             {{- end }}
             # Pin Erlang distribution port to 9001 for K8s access
             - name: ELIXIR_ERL_OPTIONS
@@ -85,13 +100,6 @@ spec:
               value: {{ .Values.config.pd.numRegions | quote }}
             - name: SPIRE_PD_START_RAFT
               value: {{ .Values.config.pd.startRaft | quote }}
-            {{- if eq .Values.discovery.type "k8sdns" }}
-            - name: SPIRE_SEED_NODE
-              value: "spiredb@{{ include "spiredb.fullname" . }}-0.{{ include "spiredb.headlessServiceName" . }}.{{ .Release.Namespace }}.svc.cluster.local"
-            {{- else }}
-            - name: SPIRE_SEED_NODE
-              value: "auto"
-            {{- end }}
             - name: SPIRE_PD_DATA_DIR
               value: {{ .Values.config.pd.dataDir | quote }}
 
