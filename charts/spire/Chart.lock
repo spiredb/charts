@@ -1,0 +1,12 @@
+dependencies:
+- name: spiredb
+  repository: file://../spiredb
+  version: 0.1.1
+- name: spiresql
+  repository: file://../spiresql
+  version: 0.1.0
+- name: haproxy
+  repository: https://haproxytech.github.io/helm-charts
+  version: 1.22.0
+digest: sha256:a463cbe29d32c4e68f1be08a08379e7947f50e3cf22099199c50c83bf6483ffb
+generated: "2026-01-15T14:30:55.592967226+01:00"

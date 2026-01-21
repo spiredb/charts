@@ -1,0 +1,22 @@
+apiVersion: v2
+name: spiresql
+description: Helm chart for SpireSQL - Spire Compute Layer
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
+keywords:
+  - database
+  - sql
+  - distributed
+  - query-engine
+maintainers:
+  - name: SpireDB Team
+home: https://github.com/spiredb/spiredb
+sources:
+  - https://github.com/spiredb/spiredb
+dependencies:
+  - name: spiredb
+    version: ">=0.1.0"
+    repository: "file://../spiredb"
+    condition: spiredb.enabled

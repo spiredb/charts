@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spiresql.fullname" . }}-config
+  labels:
+    {{- include "spiresql.labels" . | nindent 4 }}
+data:
+  spiresql.toml: |
+    listen_addr = "{{ .Values.config.listenAddr }}"
+    cluster_addr = "http://{{ .Values.spiredb.service }}{{ if .Values.spiredb.namespace }}.{{ .Values.spiredb.namespace }}{{ end }}:{{ .Values.spiredb.port }}"
+    data_access_addr = "http://{{ .Values.spiredb.dataAccessService }}{{ if .Values.spiredb.namespace }}.{{ .Values.spiredb.namespace }}{{ end }}:{{ .Values.spiredb.dataAccessPort }}"
+    query_cache_capacity = {{ .Values.config.queryCacheCapacity }}
+    enable_cache = {{ .Values.config.enableCache }}
+    log_level = "{{ .Values.config.logLevel }}"
+    num_workers = {{ .Values.config.numWorkers }}
+

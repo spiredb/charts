@@ -1,0 +1,38 @@
+apiVersion: v2
+name: spire
+description: Umbrella chart for complete Spire stack (SpireDB + SpireSQL + HAProxy)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+icon: https://raw.githubusercontent.com/spiredb/spire_charts/main/art/spire-square.png
+keywords:
+  - database
+  - distributed
+  - sql
+  - oltp
+  - vector
+maintainers:
+  - name: SpireDB Team
+    email: support@spire.zone
+home: https://github.com/spiredb/spiredb
+sources:
+  - https://github.com/spiredb/spiredb
+
+dependencies:
+  # SpireDB - Storage layer (OLTP database with Raft consensus)
+  - name: spiredb
+    version: ">=0.1.0"
+    repository: "file://../spiredb"
+    condition: spiredb.enabled
+
+  # SpireSQL - Compute layer (PostgreSQL-compatible query engine)
+  - name: spiresql
+    version: ">=0.1.0"
+    repository: "file://../spiresql"
+    condition: spiresql.enabled
+
+  # HAProxy - Load balancer for SpireSQL instances
+  - name: haproxy
+    version: "1.22.0"
+    repository: "https://haproxytech.github.io/helm-charts"
+    condition: haproxy.enabled

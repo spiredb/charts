@@ -1,0 +1,32 @@
+Spire Stack deployed successfully!
+
+COMPONENTS:
+{{- if .Values.spiredb.enabled }}
+  • SpireDB (Storage): {{ .Release.Name }}-spiredb
+{{- end }}
+{{- if .Values.spiresql.enabled }}
+  • SpireSQL (Compute): {{ .Release.Name }}-spiresql
+{{- end }}
+{{- if .Values.haproxy.enabled }}
+  • HAProxy (Load Balancer): {{ .Release.Name }}-haproxy
+{{- end }}
+
+CONNECT:
+{{- if .Values.haproxy.enabled }}
+  PostgreSQL endpoint (via HAProxy):
+  
+  kubectl get svc {{ .Release.Name }}-haproxy -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  
+  psql -h <EXTERNAL_IP> -p 5432 -U postgres
+{{- else if .Values.spiresql.enabled }}
+  Port-forward to SpireSQL:
+  
+  kubectl port-forward svc/{{ .Release.Name }}-spiresql 5432:5432
+  psql -h localhost -p 5432 -U postgres
+{{- end }}
+
+REDIS (SpireDB RESP interface):
+{{- if .Values.spiredb.enabled }}
+  kubectl port-forward svc/{{ .Release.Name }}-spiredb 6379:6379
+  redis-cli -p 6379
+{{- end }}

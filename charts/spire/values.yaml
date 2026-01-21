@@ -1,0 +1,100 @@
+# Spire Umbrella Chart - Complete Stack
+# Deploys: SpireDB (storage) + SpireSQL (compute) + HAProxy (LB)
+
+# ============================================================================
+# SpireDB - Storage Layer
+# ============================================================================
+spiredb:
+  enabled: true
+  # Override any spiredb values here
+  # replicaCount: 3
+
+# ============================================================================
+# SpireSQL - Compute Layer  
+# ============================================================================
+spiresql:
+  enabled: true
+  replicaCount: 2
+  
+  # Override spiredb connection (points to our deployed spiredb)
+  spiredb:
+    enabled: false  # Don't deploy spiredb from spiresql
+    service: spire-spiredb-headless  # Headless service exposes 50051 (ClusterService)
+    port: 50051
+    dataAccessService: spire-spiredb  # Regular service exposes 50052 (DataAccess)
+    dataAccessPort: 50052
+    namespace: ""
+  
+  config:
+    listenAddr: "0.0.0.0:5432"
+    queryCacheCapacity: 65536
+    enableCache: true
+    logLevel: "info"
+    numWorkers: 0
+  
+  # Disable external service - HAProxy will expose it
+  service:
+    type: ClusterIP
+    port: 5432
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# ============================================================================
+# HAProxy - Load Balancer for SpireSQL
+# ============================================================================
+haproxy:
+  enabled: true
+  
+  # Container ports (override defaults: http:80, https:443, stat:1024)
+  containerPorts:
+    postgres: 5432
+  
+  # Service configuration
+  service:
+    type: LoadBalancer
+  
+  # HAProxy configuration for PostgreSQL load balancing
+  config: |
+    global
+      log stdout format raw local0
+      maxconn 4096
+    
+    defaults
+      log global
+      mode tcp
+      option tcplog
+      option dontlognull
+      timeout connect 5s
+      timeout client 30s
+      timeout server 30s
+      retries 3
+    
+    frontend postgres_frontend
+      bind *:5432
+      default_backend spiresql_backend
+    
+    backend spiresql_backend
+      balance roundrobin
+      option tcp-check
+      # SpireSQL pods discovered via DNS
+      server-template spiresql 10 _postgres._tcp.{{ .Release.Name }}-spiresql.{{ .Release.Namespace }}.svc.cluster.local resolvers dns check
+    
+    resolvers dns
+      nameserver dns1 kube-dns.kube-system.svc.cluster.local:53
+      resolve_retries 3
+      timeout resolve 1s
+      timeout retry 1s
+      hold valid 10s
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+

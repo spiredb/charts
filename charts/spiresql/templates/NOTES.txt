@@ -1,0 +1,13 @@
+SpireSQL has been deployed!
+
+1. Get the PostgreSQL connection:
+   kubectl get svc {{ include "spiresql.fullname" . }} -n {{ .Release.Namespace }}
+
+2. Connect with psql:
+   kubectl port-forward svc/{{ include "spiresql.fullname" . }} 5432:5432 -n {{ .Release.Namespace }}
+   psql -h localhost -p 5432
+
+3. Monitor pods:
+   kubectl get pods -l "app.kubernetes.io/name={{ include "spiresql.name" . }}" -n {{ .Release.Namespace }}
+
+SpireSQL connects to SpireDB at: {{ .Values.spiredb.service }}:{{ .Values.spiredb.port }}

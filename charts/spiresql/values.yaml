@@ -1,0 +1,72 @@
+# Default values for spiresql.
+# SpireSQL - Distributed SQL query engine for SpireDB
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/spiredb/spiresql
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 5432
+
+# SpireDB cluster connection
+spiredb:
+  # Set to true to deploy spiredb as sub-chart
+  enabled: false
+  # K8s Service name for SpireDB cluster (headless for ClusterService)
+  service: spiredb-headless
+  # ClusterService gRPC port  
+  port: 50051
+  # K8s Service name for DataAccess (regular service)
+  dataAccessService: spiredb
+  # DataAccess gRPC port
+  dataAccessPort: 50052
+  # Namespace (empty = same as SpireSQL)
+  namespace: ""
+
+# SpireSQL configuration
+config:
+  listenAddr: "0.0.0.0:5432"
+  queryCacheCapacity: 65536
+  enableCache: true
+  logLevel: "info"
+  numWorkers: 0
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
