@@ -27,7 +27,7 @@ spiresql:
   
   config:
     listenAddr: "0.0.0.0:5432"
-    queryCacheCapacity: 65536
+    queryCacheCapacity: 1000
     enableCache: true
     logLevel: "info"
     numWorkers: 0
@@ -69,8 +69,8 @@ haproxy:
       option tcplog
       option dontlognull
       timeout connect 5s
-      timeout client 30s
-      timeout server 30s
+      timeout client 300s
+      timeout server 300s
       retries 3
     
     frontend postgres_frontend
@@ -92,9 +92,9 @@ haproxy:
   
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
       cpu: 500m
-      memory: 256Mi
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
 
