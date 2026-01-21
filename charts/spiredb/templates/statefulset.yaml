@@ -61,12 +61,21 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 
             # --- Elixir Release / Node Naming ---
             - name: RELEASE_DISTRIBUTION
               value: "name"
+            {{- if eq .Values.discovery.type "k8sdns" }}
+            - name: RELEASE_NODE
+              value: "spiredb@$(POD_NAME).{{ include "spiredb.headlessServiceName" . }}.$(POD_NAMESPACE).svc.cluster.local"
+            {{- else }}
             - name: RELEASE_NODE
               value: "spiredb@$(POD_IP)"
+            {{- end }}
             # Pin Erlang distribution port to 9001 for K8s access
             - name: ELIXIR_ERL_OPTIONS
               value: "-kernel inet_dist_listen_min {{ .Values.service.distPort }} inet_dist_listen_max {{ .Values.service.distPort }} inet_dist_use_interface {0,0,0,0}"
@@ -76,8 +85,13 @@ spec:
               value: {{ .Values.config.pd.numRegions | quote }}
             - name: SPIRE_PD_START_RAFT
               value: {{ .Values.config.pd.startRaft | quote }}
+            {{- if eq .Values.discovery.type "k8sdns" }}
+            - name: SPIRE_SEED_NODE
+              value: "spiredb@{{ include "spiredb.fullname" . }}-0.{{ include "spiredb.headlessServiceName" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+            {{- else }}
             - name: SPIRE_SEED_NODE
               value: "auto"
+            {{- end }}
             - name: SPIRE_PD_DATA_DIR
               value: {{ .Values.config.pd.dataDir | quote }}
 
@@ -113,20 +127,16 @@ spec:
 
             # --- Discovery ---
             - name: SPIRE_DISCOVERY
-              {{- if eq .Values.discovery.type "static" }}
-              value: "epmd"
-              {{- else }}
-              value: "gossip"
-              {{- end }}
+              value: {{ .Values.discovery.type | quote }}
 
-            {{- if ne .Values.discovery.type "static" }}
             - name: SPIRE_SERVICE_NAME
+              value: {{ include "spiredb.headlessServiceName" . | quote }}
+            - name: SPIRE_HEADLESS_SERVICE
               value: {{ include "spiredb.headlessServiceName" . | quote }}
             - name: SPIRE_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            {{- end }}
 
             {{- if eq .Values.discovery.type "static" }}
             # Example for static: SPIRE_CLUSTER_NODES must be passed if not k8s
