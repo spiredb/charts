@@ -130,6 +130,10 @@ config:
       path: "/var/lib/spiredb/data" # SPIRE_ROCKSDB_PATH
       maxOpenFiles: 10000 # SPIRE_ROCKSDB_MAX_OPEN_FILES
       
+    # Vector Index
+    vector:
+      dataDir: "/var/lib/spiredb/vectors" # SPIRE_VECTOR_DATA_DIR
+
     # Raft Regions
     raft:
       dataDir: "/var/lib/spiredb/regions" # SPIRE_RAFT_DATA_DIR

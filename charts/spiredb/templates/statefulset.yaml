@@ -120,6 +120,9 @@ spec:
             - name: SPIRE_ROCKSDB_MAX_OPEN_FILES
               value: {{ .Values.config.store.rocksdb.maxOpenFiles | quote }}
 
+            - name: SPIRE_VECTOR_DATA_DIR
+              value: {{ .Values.config.store.vector.dataDir | quote }}
+
             - name: SPIRE_RAFT_DATA_DIR
               value: {{ .Values.config.store.raft.dataDir | quote }}
             - name: SPIRE_RAFT_ELECTION_TIMEOUT
